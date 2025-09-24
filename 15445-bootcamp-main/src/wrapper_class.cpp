@@ -1,81 +1,61 @@
 /**
  * @file wrapper_class.cpp
  * @author Abigale Kim (abigalek)
- * @brief Tutorial code on wrapper classes.
+ * @brief 关于包装类（wrapper classes）的教程代码。
  */
 
-// A C++ wrapper class is a class that manages a resource. A resource
-// could be memory, file sockets, or a network connection. Wrapper classes
-// often use the RAII (Resource Acquisition is Initialization) C++ 
-// programming technique. Using this technique implies that the resource's
-// lifetime is tied to its scope. When an instance of the wrapper class is
-// constructed, this means that the underlying resource it is managing is
-// available, and when this instance is destructed, the resource also
-// is unavailable. 
-// Here are a couple resources on RAII that are useful:
-// https://en.cppreference.com/w/cpp/language/raii (RAII docs on the CPP
-// docs website)
-// Interesting Stack Overflow answers to "What is meant by RAII?":
+// C++ 中的包装类是用于管理某种资源的类。资源可以是内存、文件套接字或网络连接。
+// 包装类通常使用 RAII（Resource Acquisition Is Initialization，资源获取即初始化）
+// 的编程技巧。使用该技巧意味着资源的生命周期与作用域绑定：当包装类实例被构造时，
+// 它管理的底层资源可用；当该实例被析构时，资源也随之不可用。
+// 下面是一些关于 RAII 的有用资料：
+// https://en.cppreference.com/w/cpp/language/raii (CPP 文档的 RAII 页面)
+// 关于 “What is meant by RAII?” 的一些有趣的 Stack Overflow 回答：
 // https://stackoverflow.com/questions/2321511/what-is-meant-by-resource-acquisition-is-initialization-raii
 
-// In this file, we will look at a basic implementation of a wrapper class that
-// manages an int*. We will also look at usage of this class.
+// 在本文件中，我们将查看一个基本的包装类实现，该类管理一个 int*，并演示如何使用它。
 
-// Includes std::cout (printing) for demo purposes.
+// 包含 std::cout（用于演示打印）。
 #include <iostream>
-// Includes the utility header for std::move.
+// 包含提供 std::move 的 utility 头。
 #include <utility>
 
-// The IntPtrManager class is a wrapper class that manages an int*. The
-// resource that this class is managing is the dynamic memory accessible via
-// the pointer ptr_. By the principles of the RAII technique, a wrapper class
-// object should not be copyable, since one object is supposed to manage one
-// resource. Therefore, the copy assignment operator and copy constructor are
-// deleted from this class. However, the class is still moveable from different
-// lvalues/owners, and has a move constructor and move assignment operator.
-// Another reason that wrapper classes forbid copying is because they destroy
-// their resource in the destructor, and if two objects are managing the same
-// resource, there is a risk of double deletion of the resource.
+// IntPtrManager 类是一个管理 int* 的包装类。该类管理的资源是通过指针 ptr_ 访问的动态内存。
+// 根据 RAII 原则，包装类对象通常不可复制，因为每个对象应当管理自己的唯一资源。
+// 因此本类删除了拷贝构造函数和拷贝赋值操作符。但类仍然可移动，提供了移动构造函数和移动赋值操作符。
+// 如果两个对象管理相同资源，可能导致重复释放。
 class IntPtrManager {
   public:
-    // All constructors of a wrapper class are supposed to initialize a resource.
-    // In this case, this means allocating the memory that we are managing.
-    // The default value of this pointer's data is 0.
+    // 所有包装类的构造函数都应初始化它要管理的资源。在这里即分配我们管理的内存。
+    // 该指针所指向的数据的默认值为 0。
     IntPtrManager() {
       ptr_ = new int;
       *ptr_ = 0;
     }
 
-    // Another constructor for this wrapper class that takes a initial value.
+    // 提供带初始值的构造函数。
     IntPtrManager(int val) {
       ptr_ = new int;
       *ptr_ = val;
     }
 
-    // Destructor for the wrapper class. The destructor must destroy the
-    // resource that it is managing; in this case, the destructor deletes
-    // the pointer!
+    // 包装类的析构函数。析构函数必须销毁它所管理的资源；在这里就是 delete 指针。
     ~IntPtrManager() {
-      // Note that since the move constructor marks objects invalid by setting
-      // their ptr_ value to nullptr, we have to account for this in the 
-      // destructor. We don't want to be calling delete on a nullptr!
+      // 注意：移动构造函数会通过将 ptr_ 设为 nullptr 来标记被移动对象无效，
+      // 因此析构函数需要处理这种情况。我们不应对 nullptr 调用 delete。
       if (ptr_) {
         delete ptr_;
       }
     }
 
-    // Move constructor for this wrapper class. Note that after the move
-    // constructor is called, effectively moving all of other's data into
-    // the specified instance being constructed, the other object is no
-    // longer a valid instance of the IntPtrManager class, since it has
-    // no memory to manage. 
+    // 移动构造函数。移动构造后，other 的数据被转移到当前被构造的实例中，
+    // other 不再是一个有效的 IntPtrManager 实例（因为它不再管理内存）。
     IntPtrManager(IntPtrManager&& other) {
       ptr_ = other.ptr_;
       other.ptr_ = nullptr;
     }
 
-    // Move assignment operator for this wrapper class. Similar techniques as
-    // the move constructor.
+    // 移动赋值操作符。与移动构造函数类似的处理手法。
     IntPtrManager &operator=(IntPtrManager &&other) {
       if (ptr_ == other.ptr_) {
         return *this;
@@ -88,17 +68,16 @@ class IntPtrManager {
       return *this;
     }
 
-    // We delete the copy constructor and the copy assignment operator,
-    // so this class cannot be copy-constructed. 
+    // 删除拷贝构造函数和拷贝赋值操作符，因此该类不可被拷贝构造。
     IntPtrManager(const IntPtrManager &) = delete;
     IntPtrManager &operator=(const IntPtrManager &) = delete;
 
-    // Setter function.
+    // 设置值的函数。
     void SetVal(int val) {
       *ptr_ = val;
     }
 
-    // Getter function.
+    // 获取值的函数。
     int GetVal() const {
       return *ptr_;
     }
@@ -109,31 +88,25 @@ class IntPtrManager {
 };
 
 int main() {
-  // We initialize an instance of IntPtrManager. After it is initialized, this
-  // class is managing an int pointer.
+  // 初始化一个 IntPtrManager 实例。初始化后该实例开始管理一个 int 指针。
   IntPtrManager a(445);
 
-  // Getting the value works as expected.
+  // 读取值按预期工作。
   std::cout << "1. Value of a is " << a.GetVal() << std::endl;
 
-  // Setting the value goes through, and the value can retrieved as expected.
+  // 设置值后也可正常读取。
   a.SetVal(645);
   std::cout << "2. Value of a is " << a.GetVal() << std::endl;
 
-  // Now, we move the instance of this class from the a lvalue to the b lvalue
-  // via the move constructor.
+  // 通过移动构造函数将 a 的所有权移动到 b。
   IntPtrManager b(std::move(a));
 
-  // Retrieving the value of b works as expected because b is now managing the
-  // data originally constructed by the constructor that created a. Note that
-  // calling GetVal() on a will segfault, and a is supposed to effectively be
-  // empty and unusable in this state.
+  // 读取 b 的值按预期工作，因为 b 现在管理原本由 a 构造时分配的数据。
+  // 注意：对 a 调用 GetVal() 将导致段错误，因为 a 在被移动后应视为不可用（空）。
   std::cout << "Value of b is " << b.GetVal() << std::endl;
 
-  // Once this function ends, the destructor for both a and b will be called.
-  // a's destructor will note that the ptr_ it is managing has been set to 
-  // nullptr, and will do nothing, while b's destructor should free the memory
-  // it is managing.
+  // 当函数结束时，a 和 b 的析构函数都会被调用。
+  // a 的析构函数会发现它的 ptr_ 被设为 nullptr 并什么都不做，而 b 的析构函数应释放它管理的内存。
 
   return 0;
 }

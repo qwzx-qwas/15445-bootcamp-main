@@ -1,116 +1,93 @@
 /**
  * @file iterator.cpp
  * @author Abigale Kim (abigalek)
- * @brief Tutorial code on the usage and creation of iterators.
+ * @brief 迭代器使用与实现的教程代码。
  */
 
-// C++ iterators are objects that point to an element inside a container.
-// They can be used to iterate through the objects of that container.
-// One example of an iterator that you know is a pointer. A pointer
-// can be used to iterate through a C style array. Take the following
-// C-style code snippet:
+// C++ 迭代器是指向容器内某个元素的对象。
+// 它们可用于遍历该容器的元素。
+// 一个你已经熟悉的迭代器例子是指针。指针可以用于遍历 C 风格数组。看下面的
+// C 风格代码片段：
 // int *array = malloc(sizeof(int) * 10);
 // int *iter = array;
 // int zero_elem = *iter;
 // iter++;
 // int first_elem = *iter;
-// As we can see, the ++ operator can be used to iterate through the
-// C style array, and the derefence operator returns the value at the
-// iterator.
+// 如上所示，++ 操作符可用于遍历 C 风格数组，解引用操作符返回迭代器所指向的值。
 
-// The main components of a C++ iterator are its main two operators. The
-// dereference operator (*) on an iterator should return the value of the
-// element at the current position of the iterator. The ++ (postfix increment)
-// operator should increment the iterator's position by 1. As you can see, this
-// is true with the pointer being used to iterate through a C style array.
+// C++ 迭代器的主要组成是两个核心操作符。
+// 迭代器上的解引用操作符 (*) 应返回迭代器当前位置元素的值。
+// ++（递增）操作符应将迭代器的位置加 1。如上所示，指针用来遍历 C 风格数组时满足该行为。
 
-// There are a few examples about how to use iterators to access elements
-// in C++ STL containers in vectors.cpp, sets.cpp, unordered_maps.cpp, 
-// and auto.cpp. This is because using iterators in C++ to access and modify
-// elements in C++ STL containers is considered good style, and worth
-// mentioning in these files. 
+// 关于如何在 C++ STL 容器中使用迭代器访问元素的示例，请参见 vectors.cpp、sets.cpp、
+// unordered_maps.cpp 和 auto.cpp。这是因为在 C++ 中使用迭代器访问和修改 STL 容器的元素是良好风格，值得在这些文件中提及。
 
-// This file will mainly focus on the implementation of iterators. In this
-// file, we demonstrate implementing C++ iterators by writing a basic doubly
-// linked list (DLL) iterator.
+// 本文件主要关注迭代器的实现。我们通过实现一个简单的双向链表（DLL）迭代器来演示如何实现 C++ 迭代器。
 
-// Includes std::cout (printing) for demo purposes.
+// 包含用于演示打印的 std::cout。
 #include <iostream>
 
-// This is the definition of the Node struct, used in our DLL.
+// 下面是 Node 结构体的定义，用于我们的双向链表（DLL）。
 struct Node {
-  Node(int val) 
-    : next_(nullptr)
-    , prev_(nullptr)
-    , value_(val) {}
+  Node(int val): next_(nullptr), prev_(nullptr), value_(val) {}
 
   Node* next_;
   Node* prev_;
   int value_;
 };
 
-// This class implements a C++ style iterator for the doubly linked list class 
-// DLL. This class's constructor takes in a node that marks the start of the
-// iterating. It also implements several operators that increment the iterator
-// (i.e. accessing the next element in the DLL) and test for equality between
-// two different iterators by comparing their curr_ pointers.
+// 该类为双向链表（DLL）实现了一个 C++ 风格的迭代器类。
+// 构造函数接收标记迭代起始位置的节点。它还实现了若干运算符用于递增迭代器
+// （即访问 DLL 中的下一个元素）以及通过比较 curr_ 指针判断两个迭代器是否相等。
 class DLLIterator {
   public:
     DLLIterator(Node* head) 
       : curr_(head) {}
 
-    // Implementing a prefix increment operator (++iter).
+    // 实现前缀递增操作符 (++iter)。运算符重载
     DLLIterator& operator++() {
       curr_ = curr_->next_;
       return *this;
     }
 
-    // Implementing a postfix increment operator (iter++). The difference
-    // between a prefix and postfix increment operator is the return value
-    // of the operator. The prefix operator returns the result of the
-    // increment, while the postfix operator returns the iterator before
-    // the increment.
+    // 实现后缀递增操作符 (iter++)。前缀与后缀递增的区别在于返回值。
+    // 前缀操作返回递增后的迭代器，而后缀操作返回递增前的迭代器。
     DLLIterator operator++(int) {
       DLLIterator temp = *this;
       ++*this;
       return temp;
     }
 
-    // This is the equality operator for the DLLIterator class. It
-    // tests that the current pointers are the same.
+    // DLLIterator 的相等比较运算符。
+    // 通过比较当前指针是否相同来判断。
     bool operator==(const DLLIterator &itr) const {
       return itr.curr_ == this->curr_;
     }
 
-    // This is the inequality operator for the DLLIterator class. It
-    // tests that the current pointers are not the same.
+    // DLLIterator 的不等比较运算符。
+    // 通过比较当前指针是否不同来判断。
     bool operator!=(const DLLIterator &itr) const {
       return itr.curr_ != this->curr_;
     }
 
-    // This is the dereference operator for the DLLIterator class. It
-    // returns the value of the element at the current position of the
-    // iterator. The current position of the iterator is marked by curr_,
-    // and we can access the value of curr_ by accessing its value field.
+    // DLLIterator 的解引用操作符。
+    // 返回迭代器当前位置元素的值。当前位置由 curr_ 标记，可通过其 value 字段访问值。
     int operator*() {
       return curr_->value_;
     }
 
   private:
     Node* curr_;
-};
+};                                                                                              
 
-// This is a basic implementation of a doubly linked list. It also includes
-// iterator functions Begin and End, which return DLLIterators that can be
-// used to iterate through this DLL instance.
+// 这是双向链表（DLL）的基本实现。它还包含 Begin 和 End 迭代器函数，
+// 用于返回可用于遍历该 DLL 实例的 DLLIterator。
 class DLL {
   public:
-    // DLL class constructor.
-    DLL() 
-    : head_(nullptr)
-    , size_(0) {}
-
-    // Destructor should delete all the nodes by iterating through them.
+    // DLL 构造函数。
+    DLL(): head_(nullptr), size_(0) {}
+  
+    // 析构函数应遍历并删除所有节点以释放内存。
     ~DLL() {
       Node *current = head_;
       while(current != nullptr) {
@@ -121,7 +98,7 @@ class DLL {
       head_ = nullptr;
     }
 
-    // Function for inserting val at the head of the DLL.
+    // 在链表头插入值 val 的函数。
     void InsertAtHead(int val) {
       Node *new_node = new Node(val);
       new_node->next_ = head_;
@@ -134,15 +111,14 @@ class DLL {
       size_ += 1;
     }
 
-    // The Begin() function returns an iterator to the head of the DLL,
-    // which is the first element to access when iterating through.
+    // Begin() 返回指向 DLL 头节点的迭代器，
+    // 它是遍历时第一个要访问的元素。
     DLLIterator Begin() {
       return DLLIterator(head_);
     }
 
-    // The End() function returns an iterator that marks the one-past-the-last
-    // element of the iterator. In this case, this would be an iterator with
-    // its current pointer set to nullptr.
+    // End() 返回标记“尾后”（one-past-the-last）位置的迭代器。
+    // 在本例中，该迭代器的 curr_ 指针为 nullptr。
     DLLIterator End() {
       return DLLIterator(nullptr);
     }
@@ -151,9 +127,9 @@ class DLL {
     size_t size_;
 };
 
-// The main function shows the usage of the DLL iterator.
+// main 函数演示 DLL 迭代器的用法。
 int main() {
-  // Creating a DLL and inserting elements into it.
+  // 创建 DLL 并插入元素。
   DLL dll;
   dll.InsertAtHead(6);
   dll.InsertAtHead(5);
@@ -162,7 +138,7 @@ int main() {
   dll.InsertAtHead(2);
   dll.InsertAtHead(1);
 
-  // We can iterate through our DLL via both our prefix and postfix operators.
+  // 我们可以通过前缀和后缀递增运算符来遍历 DLL。
   std::cout << "Printing elements of the DLL dll via prefix increment operator\n";
   for (DLLIterator iter = dll.Begin(); iter != dll.End(); ++iter) {
     std::cout << *iter << " ";

@@ -1,15 +1,14 @@
 /**
  * @file templated_classes.cpp
  * @author Abigale Kim (abigalek)
- * @brief Tutorial code for templated classes.
+ * @brief 模板类的教程代码。
  */
 
-// Includes std::cout (printing).
+// 包含 std::cout（用于打印）。
 #include <iostream>
 
-// Templates can be also used to implement classes. For instance, here is a
-// basic templated class that stores one element of a templated type and
-// prints it when the print function is called.
+// 模板也可用于实现类。例如，这里有一个基本的模板类，保存一个模板类型的元素，
+// 调用 print 时会打印该元素。
 template<typename T>
 class Foo {
   public:
@@ -21,10 +20,8 @@ class Foo {
     T var_;
 };
 
-// You can also pass in multiple type names via templates into classes. 
-// For instance, here's another basic templated class that stores two
-// elements of a templated type and prints them when the print function
-// is called.
+// 也可以通过模板向类传入多个类型参数。例如，这是另一个基本的模板类，保存两个
+// 模板类型的元素，调用 print 时会打印它们。
 template<typename T, typename U> 
 class Foo2 {
   public:
@@ -39,12 +36,9 @@ class Foo2 {
     U var2_;
 };
 
-// It is also possible to create specialized templated classes, that do
-// different things for different types. Take the following contrived example,
-// which instantiates a class with a print function that outputs the value of
-// the variable stored if it's any other type but float. If the class is 
-// instantiated with a float type, it prints out hello float and the variable
-// the class stores in its var_ field.
+// 也可以创建模板类的特化，对不同类型做不同处理。下面是一个人为的例子：当模板类型不是
+// float 时，print 输出存储的变量值；当实例化为 float 时，print 输出 "hello float" 和
+// 存储在 var_ 字段的变量。
 template<typename T>
 class FooSpecial {
   public:
@@ -56,7 +50,7 @@ class FooSpecial {
     T var_;
 };
 
-// Specialized templated class, specialized on the float type.
+// 针对 float 类型的模板类特化。
 template<>
 class FooSpecial<float> {
   public:
@@ -68,7 +62,7 @@ class FooSpecial<float> {
     float var_;
 };
 
-// Template parameters don't have to be types. They can also be values!
+// 模板参数不必是类型，也可以是值！
 template<int T>
 class Bar {
   public: 
@@ -79,33 +73,25 @@ class Bar {
 };
 
 int main() {
-  // First, let us construct an object from a templated class. The Foo
-  // class template is instantiated with an int template argument. This
-  // would make a's type class Foo<int> instead of Foo. a's print 
-  // function works as expected.
+  // 首先，从模板类构造对象。Foo 模板用 int 参数实例化，会使 a 的类型为 Foo<int>。
+  // a 的 print 函数按预期工作。
   Foo<int> a(3);
   std::cout << "Calling print on Foo<int> a(3): ";
   a.print();
 
-  // It is also possible for a templated class to interpret the type
-  // of its arguments. Once again, if you're a beginner, think twice
-  // before doing this if you are unsure of the types you are 
-  // instantiating your class with.
+  // 模板类也可以根据构造参数推导类型。如果你是初学者，不确定要实例化的类型，
+  // 最好慎用此特性。
   Foo b(3.4f);
   std::cout << "Calling print on Foo b(3.4f): ";
   b.print();
 
-  // Second, we construct an object from a templated class with multiple
-  // type arguments.
+  // 其次，构造一个带有多个类型参数的模板类对象。
   Foo2<int, float> c(3, 3.2f);
   std::cout << "Calling print on Foo2<int, float> c(3, 3.2f): ";
   c.print();
 
-  // Let's see what happens when we instantiate FooSpecial both with
-  // and without the float type argument. As expected when we call
-  // print from d, it prints the variable and not "hello float".
-  // When we call print from e, which is an instance of the
-  // instantiated FooSpecial<float> class, it prints hello float!
+  // 演示对 FooSpecial 使用有无 float 类型参数实例化时的行为。对 d 调用 print 时输出变量而非
+  // "hello float"。对 e（FooSpecial<float> 实例）调用时会输出 "hello float!"。
   FooSpecial<int> d(5);
   std::cout << "Calling print on FooSpecial<int> d(5): ";
   d.print();
@@ -114,15 +100,13 @@ int main() {
   std::cout << "Calling print on FooSpecial<float> e(4.5): ";
   e.print();
 
-  // Lastly, let's see what happens when we construct an object from a
-  // templated class with non-type arguments.
+  // 最后，演示用非类型模板参数构造对象时的行为。
   Bar<150> f;
   std::cout << "Calling print_int on Bar<150> f: ";
   f.print_int();
 
-  // Once again, these are contrived examples, but it is still important
-  // to understand them you'll be seeing code similar to this in the Bustub
-  // codebase, so it's good to understand templated classes in these contexts!
+  // 再次提示，这些示例是人为构造的，但理解它们仍然很重要：在 Bustub 代码库中会看到
+  // 类似的代码，因此理解模板类在这些场景下的用法很有帮助。
 
   return 0;
 }

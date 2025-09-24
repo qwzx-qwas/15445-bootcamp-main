@@ -1,46 +1,40 @@
 /**
  * @file templated_functions.cpp
  * @author Abigale Kim (abigalek)
- * @brief Tutorial code for templated functions.
+ * @brief 模板函数的教程代码。
  */
 
-// Includes std::cout (printing) for demo purposes.
+// 包含 std::cout（用于演示打印）。
 #include <iostream>
 
-// Templates are a language feature in C++ that allow you to write code that
-// can work with multiple data types, without actually specifying those types.
-// In C++, you can create both templated functions and templated classes. We'll
-// talk about templated functions in this file.
+// 模板是 C++ 的一项语言特性，允许编写可适用于多种数据类型的代码，而无需在编写时
+// 指定具体类型。在 C++ 中可以创建模板函数和模板类。本文件讨论模板函数。
 
-// Here is a basic templated function that adds two numbers.
-// Syntax note: You will see code with both template<class T> and
-// template<typename T>. Although these statements are equivalent, there are
-// differences between the class and typename keywords. This blog article covers
-// this difference, but you won't need to know this for the class:
+// 下面是一个简单的模板函数，用于相加两个数。
+// 语法说明：你会看到 template<class T> 和 template<typename T> 两种写法。
+// 虽然二者等价，但 class 与 typename 关键字之间有细微差别。相关讨论见下方文章，
+// 不过在课堂中你通常不需要深入该差别：
 // https://mariusbancila.ro/blog/2021/03/15/typename-or-class/
 template <typename T> T add(T a, T b) { return a + b; }
 
-// It is possible to pass multiple type names via templates into functions.
-// This function will print both of these values out.
+// 模板可以接受多个类型参数并传入函数。
+// 该函数将打印两个不同类型的值。
 template<typename T, typename U>
 void print_two_values(T a, U b) {
   std::cout << a << " and " << b << std::endl;
 }
 
-// It is also possible to create specialized templated functions, that do
-// different things for different types. Take the following contrived example,
-// which prints the type if its a float type, but just prints hello world for
-// all other types.
+// 也可以为不同类型创建特化的模板函数，对不同类型做不同处理。
+// 以下示例是一个人为的例子：如果是 float 类型则打印类型信息，其他类型则打印 hello world。
 template <typename T> void print_msg() { std::cout << "Hello world!\n"; }
 
-// Specialized templated function, specialized on the float type.
+// 针对 float 类型的模板特化实现。
 template <> void print_msg<float>() {
   std::cout << "print_msg called with float type!\n";
 }
 
-// Lastly, template parameters do not have to be classes. Take this basic (yet
-// very contrived) function that takes in a bool as a template parameter and
-// does different things to the argument depending on the boolean argument.
+// 最后，模板参数不必是类型。例如下面这个简单（但不太现实）的函数，
+// 使用一个 bool 作为模板参数，根据该布尔值对输入参数做不同处理。
 template <bool T> int add3(int a) {
   if (T) {
     return a + 3;
@@ -50,41 +44,32 @@ template <bool T> int add3(int a) {
 }
 
 int main() {
-  // First, let's see the add function called on both ints and floats.
+  // 首先，看看 add 函数在 int 和 float 上的调用。
   std::cout << "Printing add<int>(3, 5): " << add<int>(3, 5) << std::endl;
   std::cout << "Printing add<float>(2.8, 3.7): " << add<float>(2.8, 3.7)
             << std::endl;
 
-  // It is also possible for a templated function to interpret the type of its
-  // arguments, although if you're a beginner in modern C++, it's preferred you
-  // don't do this because then you might not be sure of the types being passed
-  // into your functions.
+  // 也可以让模板函数根据参数推导出类型，尽管对于 C++ 初学者通常不推荐这样做，
+  // 以免不确定传入函数的具体类型。
   std::cout << "Printing add(3, 5): " << add(3, 5) << std::endl;
 
-  // Second, let's see the print_two_values function being called with two
-  // different types.
+  // 接着，展示 print_two_values 用两个不同类型作为模板参数的调用。
   std::cout << "Printing print_two_values<int, float>(3, 3.2): ";
   print_two_values<int, float>(3, 3.2);
 
-  // Let's see what happens when we called print_msg with and without the float
-  // type being passed in. As expected, the first call to print_msg prints out
-  // the general output, while the second one, with the float argument,
-  // recognizes its type parameter and calls the specialized function.
+  // 看看在传入和不传入 float 类型时 print_msg 的行为。如预期，第一次调用打印通用输出，
+  // 第二次传入 float 类型时会调用特化实现。
   std::cout << "Calling print_msg<int>(): ";
   print_msg<int>();
   std::cout << "Calling print_msg<float>(): ";
   print_msg<float>();
 
-  // add3 has the specified behavior for both a true and false templated
-  // argument, as we can see here.
+  // add3 对不同的布尔模板参数有不同表现，如下所示。
   std::cout << "Printing add3<true>(3): " << add3<true>(3) << std::endl;
   std::cout << "Printing add3<false>(3): " << add3<false>(3) << std::endl;
 
-  // Lastly, it's important to note that most of these are contrived examples,
-  // and it is possible to code some of these functions (e.g. passing a boolean
-  // as an argument instead of a templated argument) without using templates.
-  // However, in the class, you'll be seeing code similar to this in the
-  // codebase, so it's good to understand templated functions in these contexts!
+  // 最后要注意，大部分示例是人为构造的（contrived），有些功能（例如传入布尔值）
+  // 也可以通过普通参数实现，而不使用模板。但在课程代码中会看到类似用法，理解模板函数很有帮助。
 
   return 0;
 }

@@ -1,90 +1,75 @@
 /**
  * @file move_constructors.cpp
  * @author Abigale Kim (abigalek)
- * @brief Tutorial code for move constructors and move assignment operators.
+ * @brief 移动构造函数和移动赋值操作符的示例代码。
  */
 
-// Move constructors and move assignment operators are methods implemented
-// inside of classes to effectively move resources from one object to the
-// other, typically using std::move. These class methods take in another
-// object of the same type, and move its resources to the instance
-// where the method is called. In this file, we will explore implementing
-// and using move constructors and move assignment operators.
+// 移动构造函数和移动赋值操作符是在类中实现的方法，用于将资源从一个对象
+// 高效地移动到另一个对象，通常使用 std::move。此类方法接收同类型的另一个
+// 对象，并将其资源移动到调用方法的实例中。本文件将演示如何实现和使用
+// 移动构造函数与移动赋值操作符。
 
-// Includes std::cout (printing) for demo purposes.
+// 包含用于演示打印的 std::cout。
 #include <iostream>
-// Includes the utility header for std::move.
+// 包含提供 std::move 的 utility 头。
 #include <utility>
-// Includes the C++ string library.
+// 包含 C++ 字符串库。
 #include <string>
-// Includes the header for uint32_t.
+// 包含 uint32_t 的头文件。
 #include <cstdint>
-// Includes the header for std::vector. We'll cover vectors more in
-// containers.cpp, but what suffices to know for now is that vectors are
-// essentially dynamic arrays, and the type std::vector<std::string> is an array
-// of strings. Mainly, vectors take up a non-negligible amount of memory, and
-// are here to show the performance benefits of using std::move.
+// 包含 std::vector 的头。我们会在 containers.cpp 中更详细地介绍 vector，
+// 目前需要知道的是 vector 本质上是动态数组，std::vector<std::string> 是字符串数组。
+// vector 通常占用较多内存，这里用来展示使用 std::move 带来的性能优势。
 #include <vector>
 
-// Basic person class, with an implemented move constructor and move assignment
-// operator, and a deleted copy constructor and copy assignment operator. This
-// means that once an Person object is instantiated, it cannot be copied. It
-// must be moved from one lvalue to another. Classes without copy operators are
-// useful when it is imperative to only have one defined instance of a class.
-// For instance, if a class manages a dynamically allocated memory block, then
-// creating more than one instance of this class, without proper handling, can
-// result in double deletion or memory leaks.
+// 基本的 Person 类，已实现移动构造函数和移动赋值操作符，并删除了拷贝构造和
+// 拷贝赋值操作符。这意味着一旦 Person 对象被实例化，就不能被复制，必须从一
+// 个左值移动到另一个左值。当类必须保证只有一个实例持有资源时，删除拷贝操作是有用的。
+// 例如，如果类管理动态分配的内存，未经妥善处理地创建多个实例可能导致重复释放或内存泄漏。
 class Person {
 public:
   Person() : age_(0), nicknames_({}), valid_(true) {}
 
-  // Keep in mind that this constructor takes in a std::vector<std::string>
-  // rvalue. This makes the constructor more efficient because it doesn't deep
-  // copy the vector instance when constructing the person object.
+  // 请注意该构造函数接受 std::vector<std::string> 的右值引用。这使得构造更高效，
+  // 因为在构造 Person 时不会对 vector 做深拷贝。
   Person(uint32_t age, std::vector<std::string> &&nicknames)
       : age_(age), nicknames_(std::move(nicknames)), valid_(true) {}
 
-  // Move constructor for class Person. It takes in a rvalue with type Person,
-  // and moves the contents of the rvalue passed in as an argument to this
-  // Person object instance. Note the usage of std::move. In order to ensure
-  // that nicknames in object person is moved, and not deep copied, we use
-  // std::move. std::move will cast the lvalue person.nicknames_ to an rvalue,
-  // which represents the value itself. Also note that I don't call std::move
-  // on the age_ field. Since it's an integer type, it's too small to incur a
-  // significant copying cost. Generally, for numeric types, it's okay to copy
-  // them, but for other types, such as strings and object types, one should
-  // move the class instance unless copying is necessary.
+  // Person 的移动构造函数。它接收一个 Person 类型的右值引用，并将该右值的内容
+  // 移动到当前 Person 对象实例中。注意 std::move 的用法：为了确保将 person.nicknames_
+  // 移动而不是深拷贝，我们对其使用 std::move，将左值转换为右值。age_ 没有使用 std::move，
+  // 因为它是整数类型，拷贝成本很小。通常对于数值类型直接拷贝即可，而对于字符串或其他较大类型
+  // 应使用移动以避免不必要的开销。
   Person(Person &&person)
       : age_(person.age_), nicknames_(std::move(person.nicknames_)),
         valid_(true) {
     std::cout << "Calling the move constructor for class Person.\n";
-    // The moved object's validity tag is set to false.
+    // 被移动对象的有效性标记设为 false。
     person.valid_ = false;
   }
 
-  // Move assignment operator for class Person.
+  // Person 的移动赋值操作符。
   Person &operator=(Person &&other) {
     std::cout << "Calling the move assignment operator for class Person.\n";
     age_ = other.age_;
+    //调用了 std::vector 的移动赋值函数，直接把 other 的内部指针“偷”过来，而不是复制每个元素。
+    //效率很高。
     nicknames_ = std::move(other.nicknames_);
     valid_ = true;
 
-    // The moved object's validity tag is set to false.
+    // 被移动对象的有效性标记设为 false。
     other.valid_ = false;
     return *this;
   }
 
-  // We delete the copy constructor and the copy assignment operator,
-  // so this class cannot be copy-constructed.
+  // 我们删除拷贝构造函数和拷贝赋值操作符，因此该类不能被拷贝构造。
   Person(const Person &) = delete;
   Person &operator=(const Person &) = delete;
 
   uint32_t GetAge() { return age_; }
 
-  // This ampersand at the return type implies that we return a reference
-  // to the string at nicknames_[i]. This also implies that we don't copy
-  // the resulting string, and the memory address this returns under the
-  // hood is actually the one pointing to the nicknames_ vector's memory.
+  // 返回类型中的 & 表示返回 nicknames_[i] 的引用。这意味着不会复制该字符串，
+  // 返回的地址实际上指向 nicknames_ vector 中的内存。
   std::string &GetNicknameAtI(size_t i) { return nicknames_[i]; }
 
   void PrintValid() {
@@ -98,52 +83,43 @@ public:
 private:
   uint32_t age_;
   std::vector<std::string> nicknames_;
-  // Keeping track of whether an object's data is valid, i.e. whether
-  // all of its data has been moved to another instance.
+  // 跟踪对象的数据是否有效，即其所有数据是否已被移动到另一个实例。
   bool valid_;
 };
 
 int main() {
-  // Let's see how move constructors and move assignment operators can be
-  // implemented and used in a class. First, we create an instance of the class
-  // Person. Note that the object andy is a valid object.
+  // 演示如何在类中实现并使用移动构造函数和移动赋值操作符。首先创建一个 Person 实例。
+  // 注意 andy 是一个有效的对象。
   Person andy(15445, {"andy", "pavlo"});
   std::cout << "Printing andy's validity: ";
   andy.PrintValid();
 
-  // To move the contents of the andy object to another object, we can use
-  // std::move in a couple ways. This method calls the move assignment operator.
+  // 要把 andy 的内容移动到另一个对象，我们可以用 std::move 有几种方式。下面这种方式会调用移动赋值操作符。
   Person andy1;
   andy1 = std::move(andy);
 
-  // Note that andy1 is valid, while andy is not a valid object.
+  // 注意 andy1 是有效的，而 andy 则不再是有效对象。
   std::cout << "Printing andy1's validity: ";
   andy1.PrintValid();
   std::cout << "Printing andy's validity: ";
   andy.PrintValid();
 
-  // This method calls the move constructor. After this operation, the contents
-  // of the original andy object have moved to andy1, then moved to andy2. The
-  // andy and andy1 lvalues are effectively defunct (and should not be used,
-  // unless they are re-initialized).
+  // 这种方式会调用移动构造函数。此操作后，原始 andy 的内容先移动到 andy1，再移动到 andy2。
+  // andy 和 andy1 作为左值已失效（除非重新初始化，否则不应使用）。
   Person andy2(std::move(andy1));
 
-  // Note that andy2 is valid, while andy1 is not a valid object.
+  // 注意 andy2 是有效的，而 andy1 则不再有效。
   std::cout << "Printing andy2's validity: ";
   andy2.PrintValid();
   std::cout << "Printing andy1's validity: ";
   andy1.PrintValid();
 
-  // However, note that because the copy assignment operator is deleted, this code 
-  // will not compile. The first line of this code constructs a new object via the
-  // default constructor, and the second line invokes the copy assignment operator
-  // to re-initialize andy3 with the deep-copied contents of andy2. Try uncommenting
-  // these lines of code to see the resulting compiler errors.
+  // 注意：由于拷贝赋值操作符被删除，下面代码将无法编译。第一行通过默认构造构造新对象，
+  // 第二行尝试使用拷贝赋值将 andy2 的深拷贝内容赋给 andy3。取消注释可以查看编译器报错。
   // Person andy3;
   // andy3 = andy2;
 
-  // Because the copy constructor is deleted, this code will not compile. Try
-  // uncommenting this code to see the resulting compiler errors.
+  // 由于拷贝构造被删除，下面代码也无法编译。取消注释以查看编译错误。
   // Person andy4(andy2);
 
   return 0;
