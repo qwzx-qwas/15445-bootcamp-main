@@ -1,23 +1,22 @@
 /**
  * @file shared_ptr.cpp
  * @author Abigale Kim (abigalek)
- * @brief Tutorial code for usage of a shared pointer.
+ * @brief shared_ptr 使用教程代码。
  */
 
-// In this file, we'll talk about std::shared_ptr, which is a C++ smart pointer.
-// See the intro of unique_ptr.cpp for an introduction on smart pointers.
-// std::shared_ptr is a type of smart pointer that retains shared ownership of
-// an object through a pointer. This means that multiple shared pointers can
-// own the same object, and shared pointers can be copied.
+// 在此文件中，我们将讨论 C++ 智能指针 std::shared_ptr。
+// 有关智能指针的介绍可参见 unique_ptr.cpp 的开头部分。
+// std::shared_ptr 是一种保有对象共享所有权的智能指针类型。
+// 这意味着多个 shared_ptr 可以拥有同一个对象，并且 shared_ptr 可以被拷贝。
 
-// Includes std::cout (printing) for demo purposes.
+// 包含 std::cout（用于演示打印）。
 #include <iostream>
-// Includes std::shared_ptr functionality.
+// 包含 std::shared_ptr 功能。
 #include <memory>
-// Includes the utility header for std::move.
+// 包含 std::move 所需的 utility 头文件。
 #include <utility>
 
-// Basic point class. (Will use later)
+// 基本的 Point 类。（稍后会使用）
 class Point {
 public:
   Point() : x_(0), y_(0) {}
@@ -32,12 +31,10 @@ private:
   int y_;
 };
 
-// Function that modifies a Point object inside a shared pointer
-// by passing the shared pointer argument as a reference.
+// 通过引用传入 shared_ptr 并修改其内部 Point 对象的函数。
 void modify_ptr_via_ref(std::shared_ptr<Point> &point) { point->SetX(15); }
 
-// Function that modifies a Point object inside a shared pointer
-// by passing the shared pointer argument as a rvalue reference.
+// 通过右值引用传入 shared_ptr 并修改其内部 Point 对象的函数。
 void modify_ptr_via_rvalue_ref(std::shared_ptr<Point> &&point) {
   point->SetY(645);
 }
@@ -48,95 +45,75 @@ void copy_shared_ptr_in_function(std::shared_ptr<Point> point) {
 }
 
 int main() {
-  // This is how to initialize an empty shared pointer of type
-  // std::shared_ptr<Point>.
+  // 下面展示如何初始化不同状态的 std::shared_ptr<Point>。
+  // 这是初始化一个空的 std::shared_ptr<Point> 的方式。
   std::shared_ptr<Point> s1;
-  // This is how to initialize a shared pointer with the default constructor.
+  // 这是使用默认构造函数初始化 shared_ptr 的方式。
   std::shared_ptr<Point> s2 = std::make_shared<Point>();
-  // This is how to initialize a shared pointer with a custom constructor.
+  // 这是使用自定义构造函数初始化 shared_ptr 的方式。
   std::shared_ptr<Point> s3 = std::make_shared<Point>(2, 3);
 
-  // The specific syntax for checking whether a smart pointer is empty is
-  // covered in unique_ptr.cpp (line 56). Note that s1 is empty, while s2 and
-  // s3 are not empty.
+  // unique_ptr.cpp（第 56 行）介绍了检查智能指针是否为空的具体语法。
+  // 注意 s1 为空，而 s2 和 s3 非空。
   std::cout << "Pointer s1 is " << (s1 ? "not empty" : "empty") << std::endl;
   std::cout << "Pointer s2 is " << (s2 ? "not empty" : "empty") << std::endl;
   std::cout << "Pointer s3 is " << (s3 ? "not empty" : "empty") << std::endl;
 
-  // It is possible to copy shared pointers via their copy assignment and copy
-  // constructor operators. Using these copy operators will increase the
-  // reference count of the overall object. Also, std::shared_ptr comes with
-  // a method called use_count which keeps track of the number of objects
-  // currently interacting with the same internal data as the current shared
-  // pointer instance.
+  // shared_ptr 支持通过拷贝赋值和拷贝构造来复制共享指针。使用这些拷贝操作会增加指向同一对象的引用计数。
+  // std::shared_ptr 提供了 use_count 方法，用于返回当前有多少个 shared_ptr 实例共同管理同一对象。
 
-  // First, the number of references to pointer s3 is obtained. This should be
-  // 1 because s3 is the only object instance using the data in s3.
+  // 首先获取 s3 的引用计数。此时为 1，因为只有 s3 使用它所管理的数据。
   std::cout
       << "Number of shared pointer object instances using the data in s3: "
       << s3.use_count() << std::endl;
 
-  // Then, s4 is copy-constructed from s3.
-  // This is copy-construction because it is the first time s4 appears.
+  // 然后使用拷贝构造从 s3 创建 s4。
+  // 这里是拷贝构造，因为这是 s4 第一次出现。
   std::shared_ptr<Point> s4 = s3;
 
-  // Now, the number of references to pointer s3's data should be 2, since both
-  // s4 and s3 have access to s3's data.
+  // 现在 s3 的引用计数应为 2，因为 s3 和 s4 都访问相同的数据。
   std::cout << "Number of shared pointer object instances using the data in s3 "
                "after one copy: "
             << s3.use_count() << std::endl;
 
-  // Then, s5 is copy-constructed from s4.
+  // 再次拷贝构造，从 s4 创建 s5。
   std::shared_ptr<Point> s5(s4);
 
-  // Now, the number of references to pointer s3's data should be 3, since s5,
-  // s4, and s3 have access to s3's data.
+  // 现在 s3 的引用计数应为 3，因为 s3、s4 和 s5 都访问相同的数据。
   std::cout << "Number of shared pointer object instances using the data in s3 "
                "after two copies: "
             << s3.use_count() << std::endl;
 
-  // Modifying s3's data should also change the data in s4 and s5, since they
-  // refer to the same object instance.
+  // 修改 s3 所指向的数据也会影响 s4 和 s5，因为它们指向同一个对象实例。
   s3->SetX(445);
 
   std::cout << "Printing x in s3: " << s3->GetX() << std::endl;
   std::cout << "Printing x in s4: " << s4->GetX() << std::endl;
   std::cout << "Printing x in s5: " << s5->GetX() << std::endl;
 
-  // It is also possible to transfer ownership of a std::shared_ptr by moving
-  // it. Note that the pointer is empty after the move has occurred.
+  // 也可以通过移动语义转移 std::shared_ptr 的所有权。注意移动后被移动的指针会变为空。
   std::shared_ptr<Point> s6 = std::move(s5);
 
-  // Note that s5 is now empty, s6 refers to the same data as s3 and s4, and
-  // there are still 3 shared pointer instances with access to the same Point
-  // instance data, not 4.
+  // 现在 s5 为空，s6 与 s3、s4 共享相同数据，且仍然只有 3 个 shared_ptr 实例访问同一 Point 实例（不是 4 个）。
   std::cout << "Pointer s5 is " << (s5 ? "not empty" : "empty") << std::endl;
   std::cout << "Number of shared pointer object instances using the data in s3 "
                "after two copies and a move: "
             << s3.use_count() << std::endl;
 
-  // Similar to unique pointers, shared pointers can also be passed by reference
-  // and rvalue reference. See unique_ptr.cpp (line 89) for a information on
-  // passing unique pointers by reference. See references.cpp for more
-  // information on references. See move_semantics.cpp for more information on
-  // rvalue references. Here, we present code below that calls functions that
-  // modify s2 by passing a shared pointer as a reference and as a rvalue
-  // reference.
+  // 与 unique_ptr 类似，shared_ptr 也可以按引用或按右值引用传递。
+  // 有关按引用传递 unique_ptr 的说明参见 unique_ptr.cpp（第 89 行）。
+  // 有关引用和右值引用的更多信息参见 references.cpp 和 move_semantics.cpp。
+  // 下面演示按引用和按右值引用调用会修改 s2 的函数。
   modify_ptr_via_ref(s2);
   modify_ptr_via_rvalue_ref(std::move(s2));
 
-  // After running this code, s2 should have x = 15 and y = 645.
+  // 运行上述代码后，s2 的 x 应为 15，y 应为 645。
   std::cout << "Pointer s2 has x=" << s2->GetX() << " and y=" << s2->GetY()
             << std::endl;
 
-  // Unlike unique pointers, shared pointers can also be passed by value. In
-  // this case, the function contains its own copy of a shared pointer, which
-  // destroys itself after the function is finished. In this example, before s2
-  // is passed to the function by value, its use count is 1. While it is in the
-  // function, its use count is 2, because there is another copy of s2's data in
-  // the shared pointer instance in the function. After the function goes out of
-  // scope, this object in the function is destroyed, and the use count returns
-  // to 1.
+  // 与 unique_ptr 不同，shared_ptr 也可以按值传递。此时函数内部会有一个 shared_ptr 的副本，
+  // 在函数结束时该副本会被销毁。下面示例说明：在将 s2 按值传入函数前，它的 use_count 为 1；
+  // 在函数体内为 2（函数内部有一个额外的拷贝）；函数返回后该拷贝被销毁，use_count 回到 1。
   std::cout
       << "Number of shared pointer object instances using the data in s2: "
       << s2.use_count() << std::endl;
