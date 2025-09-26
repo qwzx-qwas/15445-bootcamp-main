@@ -1,74 +1,59 @@
 /**
  * @file condition_variable.cpp
  * @author Abigale Kim (abigalek)
- * @brief Tutorial code for C++ STL condition variable.
+ * @brief C++ STL 中 condition variable 的教学示例。
  */
 
-// This program shows a small example of the usage of std::condition_variable.
-// The std::condition_variable class provides the condition variable
-// synchronization primitive. The condition variable primitive allows threads
-// to wait until a particular condition before they grab a mutex. It also
-// allows other threads to signal waiting threads to alert them that
-// the condition may be true. 
+// 本程序演示了 std::condition_variable 的一个小示例。
+// std::condition_variable 提供条件变量这一同步原语。条件变量允许线程在获取互斥锁前等待某个特定条件成立。
+// 其他线程可以通知正在等待的线程，提示该条件可能已满足。
 
-// For a more detailed introduction of C style condition variables, see
-// https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf.
+// 有关 C 风格条件变量的更详细介绍，请参见:
+// https://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf
 
-// This program runs three threads. Two of these threads run a function that
-// increments a global count variable by 1, atomically, and notifies the
-// waiting thread when the count variable is 2. When the count variable is
-// 2, the waiting thread wakes up, acquires the lock, and prints the count
-// value.
+// 程序启动三个线程。其中两个线程运行一个函数，该函数以原子方式将全局 count 变量加 1，
+// 并在 count 变为 2 时通知等待线程。等待线程在 count 等于 2 时被唤醒，获取锁并打印 count 值。
 
-// Includes the condition variable library header.
+// 包含 condition_variable 头文件。
 #include <condition_variable>
-// Includes std::cout (printing) for demo purposes.
+// 包含 std::cout（用于演示输出）。
 #include <iostream>
-// Includes the mutex library header.
+// 包含 mutex 头文件。
 #include <mutex>
-// Includes the thread library header.
+// 包含 thread 头文件。
 #include <thread>
 
-// Defining a global count variable, a mutex, and a condition variable to
-// be used by both threads.
+// 定义一个全局的 count 变量、用于保护的 mutex，以及供线程间通信使用的 condition variable。
 int count = 0;
 std::mutex m;
 
-// This is the syntax for declaring and default initializing a condition 
-// variable.
+// 这是声明并默认初始化 condition_variable 的语法。
 std::condition_variable cv;
 
-// In this function, a thread increments the count variable by
-// 1. It also will notify one waiting thread if the count value is 2.
-// It is ran by two of the threads in the main function. 
+// 在此函数中，线程将 count 增加 1。如果 count 的值变为 2，将通知一个等待的线程。
+// 该函数由 main 中的两个线程并发执行。
 void add_count_and_notify() {
   std::scoped_lock slk(m);
   count += 1;
   if (count == 2) {
-    cv.notify_one();
+    cv.notify_one();     //随机通知cv上等待的一个线程
   }
 }
 
-// This function, ran by the waiting thread, waits on the condition 
-// count == 2. After that, it grabs the mutex m and executes code in
-// the critical section.
-// Condition variables need an std::unique_lock object to be constructed.
-// std::unique_lock is a type of C++ STL synchronization primitive that
-// gives more flexibility and features, including the usage with
-// condition variables. Particularly, it is moveable but not copy-constructible
-// or copy-assignable.
+// 由等待线程运行的函数，等待条件 count == 2 成立。随后它获取互斥锁 m 并在临界区内执行代码。
+// condition_variable 需要一个 std::unique_lock 对象来构造。
+// std::unique_lock 是 C++ STL 中的一种同步原语，提供比 std::lock_guard 更灵活的功能，
+// 例如可以与 condition_variable 配合使用。它是可移动的，但不可拷贝构造或拷贝赋值。
 void waiter_thread() {
   std::unique_lock lk(m);
-  cv.wait(lk, []{return count == 2;});
+  cv.wait(lk, []{return count == 2;});    //如果线程被通知但条件count != 2,则继续等待
+  
 
   std::cout << "Printing count: " << count << std::endl;
 }
 
-// The main method constructs three thread objects and has two of them run the
-// add_count_and_notify function in parallel. After these threads are finished
-// executing, we print the count value, from the waiter thread, showing that
-// both increments, along with the conditional acquisition in the waiter
-// thread, worked successfully.
+// main 函数构造三个线程对象，其中两个并行运行 add_count_and_notify。
+// 在这些线程执行完毕后，等待线程会打印 count 值，证明两个增加操作及等待线程的条件获取都已成功。
 int main() {
   std::thread t1(add_count_and_notify);
   std::thread t2(add_count_and_notify);
