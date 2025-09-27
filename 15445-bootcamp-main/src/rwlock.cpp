@@ -1,59 +1,49 @@
 /**
  * @file rwlock.cpp
  * @author Abigale Kim (abigalek)
- * @brief Tutorial code for C++ STL std::shared_lock and std::unique_lock
- * (particularly usage of them as RWLocks).
+ * @brief 关于 C++ STL 中 std::shared_lock 和 std::unique_lock 的示例代码
+ *        （尤其是作为读写锁（RWLocks）使用的场景）。
  */
 
-// Although C++ does not have a specific reader-writer's lock library, it is
-// possible to emulate one by using the std::shared_mutex, std::shared_lock,
-// and std::unique_lock libraries. This program shows a small example on how
-// to do this.
+// 虽然 C++ 没有专门的读写锁库，但可以通过 std::shared_mutex、std::shared_lock 和 std::unique_lock 来模拟读写锁。
+// 本程序给出一个小例子说明如何实现。
 
-// The std::shared_mutex is a mutex that allows for both shared, read-only
-// locking, and exclusive, write-only locking. std::shared_lock can be used
-// as an RAII-style read lock, and std::unique_lock can be used as a RAII-style
-// write lock. scoped_lock.cpp talks about RAII-style locking in C++.
+// std::shared_mutex 是一种既支持共享（只读）锁又支持独占（写）锁的互斥体。
+// std::shared_lock 可用作 RAII 风格的读锁，std::unique_lock 可用作 RAII 风格的写锁。
+// 有关 RAII 风格加锁，请参见 scoped_lock.cpp。
 
-// If you would prefer to review the conceptuals of readers-writers locks and
-// the reader-writers problem, you can refer to the 15-213/513/613 slides here:
+// 如果想复习读写锁的概念以及 reader-writers 问题，可参考以下讲义：
 // https://www.cs.cmu.edu/afs/cs/academic/class/15213-s23/www/lectures/25-sync-advanced.pdf
 
-// Includes std::cout (printing) for demo purposes.
+// 包含 std::cout（用于示例打印）。
 #include <iostream>
-// Includes the mutex library header.
+// 包含 mutex 头文件。
 #include <mutex>
-// Includes the shared mutex library header.
+// 包含 shared_mutex 头文件。
 #include <shared_mutex>
-// Includes the thread library header.
+// 包含 thread 头文件。
 #include <thread>
+#include <string>
 
-// Defining a global count variable and a shared mutex to be used by all threads.
-// The std::shared_mutex is a mutex that allows for shared locking, as well as
-// exclusive locking.
+// 定义一个全局 count 变量和一个供所有线程使用的 shared mutex。
+// std::shared_mutex 既支持共享锁也支持独占锁。
 int count = 0;
 std::shared_mutex m;
 
-// This function uses a std::shared_lock (reader lock equivalent) to gain
-// read only, shared access to the count variable, and reads the count
-// variable.
+// 这个函数使用 std::shared_lock（相当于读者锁）来获得对 count 的只读共享访问，并读取该变量。
 void read_value() {
   std::shared_lock lk(m);
   std::cout << "Reading value " + std::to_string(count) + "\n" << std::flush;
 }
 
-// This function uses a std::unique_lock (write lock equivalent) to gain
-// exclusive access to the count variable and write to the value.
+// 这个函数使用 std::unique_lock（相当于写者锁）来获得对 count 的独占访问并写入。
 void write_value() {
   std::unique_lock lk(m);
   count += 3;
 }
 
-// The main method constructs six thread objects and has two of them run the
-// write_value function, and four of them run the read_value function, all
-// in parallel. This means that the output is not deterministic, depending
-// on which threads grab the lock first. Run the program a few times, and
-// see if you can get different outputs.
+// main 构造了六个线程对象，其中两个运行 write_value，四个运行 read_value，全部并行执行。
+// 因此输出并非确定性的，取决于哪个线程先获取锁。多运行几次，观察是否得到不同输出。
 int main() {
   std::thread t1(read_value);
   std::thread t2(write_value);

@@ -35,10 +35,10 @@ class Pointer {
 
   // Copy constructor is explicitly deleted.
   Pointer(const Pointer<T> &) = delete;
-  // Copy assignment operator is explicitly deleted.
+  // Copy assignment operator is explicitly deleted.删除拷贝赋值运算符
   Pointer<T> &operator=(const Pointer<T> &) = delete;
 
-  // Add move constructor: useful when we need to EXTEND the lifetime of an object!
+  // Add move constructor: useful when we need to EXTEND the lifetime of an object!增加移动构造函数
   Pointer<T>(Pointer<T> &&another) : ptr_(another.ptr_) { another.ptr_ = nullptr; }
   // Add move assign operator: useful when we need to EXTEND the lifetime of an object!
   Pointer<T> &operator=(Pointer<T> &&another) {
@@ -69,7 +69,7 @@ class Pointer {
 template <typename T>
 Pointer<int> &dumb_generator(T init) {
   Pointer<T> p(init);
-  return p;  // NOOO! A DANGLING REFERENCE!
+  return p;  // NOOO! A DANGLING REFERENCE!悬空引用，p在函数结束时被销毁，返回引用就悬空了
 }
 
 template <typename T>
@@ -80,11 +80,11 @@ Pointer<T> smart_generator(T init) {
   // You can refer to `Automatic l-values returned by value may be moved instead of copied` in
   // https://www.learncpp.com/cpp-tutorial/move-constructors-and-move-assignment/ for more information.
 }
-
+//这个函数的意思是：我接手了外面的资源，从现在开始，它的生命周期由我负责。
 void take_ownership(std::unique_ptr<int> p) {
   // Do something...
 }
-
+// 这个函数的意思是：我不接手外面的资源，我只是借用一下它的值，函数结束后我不负责释放它。
 void not_take_ownership(int *p) {
   // Never `delete p` here!!
 }
@@ -146,6 +146,7 @@ int main() {
   //     Problem: `Pointer p2 = p1` will cause `double free` problem
   //     Copy constructor & assign operator are evil in this case, since it will allow both p1 and p2 to manage the same
   //     raw pointer! Solution: disable copy constructor & assign operator
+  //  默认拷贝等于浅拷贝，即复制指针地址，两个指针指向同一块内存区域，所以当两个指针析构时会出现double free错误
   //  2. Second version: without copy constructor & assign operator, without move constructor & assign operator
   //     `Pointer p2 = p1` won't compile, which is good. We can use reference `Pointer &p2 = p1` instead. But...
   //     Problem: we cannot implement functions like dumb_generator() or smart_generator()!
@@ -181,8 +182,8 @@ int main() {
   // Sometimes we want to use the heap to extend the scope of the stack, like what dumb_generator() does!
   // Ex: pass down one element from a thread to another.
   // Please try to uncomment the following code!
-  // Pointer<int>& dumb_pointer = dumb_generator(2); // Something will go horribly wrong, but what?
-  // dumb_pointer.set_val(10); // Uh oh...
+  //Pointer<int>& dumb_pointer = dumb_generator(2); // Something will go horribly wrong, but what?
+  //dumb_pointer.set_val(10); // Uh oh...
 
   // We need a way to "move the ownership". Please check move assign operator/constructor in Pointer class.
   // And we change dumb_generator() to smart_generator()...
